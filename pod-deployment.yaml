@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: n8n-deployment
+  namespace: n8n
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: n8n
+  template:
+    metadata:
+      labels:
+        app: n8n
+    spec:
+      volumes:
+      - name: n8n-data
+        persistentVolumeClaim:
+          claimName: n8n-pvc
+      initContainers:
+      - name: init-permissions
+        image: busybox
+        command: ["sh", "-c", "chmod 777 /n8n"]
+        volumeMounts:
+        - name: n8n-data
+          mountPath: /n8n
+      containers:
+      - name: n8n
+        image: n8nio/n8n
+        ports:
+        - containerPort: 5678
+        env:
+        - name: N8N_USER_FOLDER
+          value: "/n8n"
+        - name: N8N_SECURE_COOKIE
+          value: "false"
+        - name: N8N_BASIC_AUTH_ACTIVE
+          value: "true"
+        - name: N8N_BASIC_AUTH_USER
+          value: "n8n"
+        - name: N8N_BASIC_AUTH_PASSWORD
+          value: "n8n"
+        - name: GENERIC_TIMEZONE
+          value: "Asia/Tokyo"
+        volumeMounts:
+        - name: n8n-data
+          mountPath: /n8n
