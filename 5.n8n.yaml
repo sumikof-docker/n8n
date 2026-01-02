@@ -1,0 +1,70 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: n8n
+  namespace: n8n
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: n8n
+  template:
+    metadata:
+      labels:
+        app: n8n
+    spec:
+      initContainers:
+        - name: init-permissions
+          image: busybox
+          command: ["sh", "-c", "chmod 777 /n8n"]
+          volumeMounts:
+          - name: n8n-data
+            mountPath: /n8n
+      containers:
+        - name: n8n
+          image: n8nio/n8n:1.119.2
+          ports:
+            - containerPort: 5678
+          env:
+            - name: DB_TYPE
+              value: postgresdb
+            - name: DB_POSTGRESDB_HOST
+              value: postgres.n8n.svc.cluster.local
+            - name: DB_POSTGRESDB_PORT
+              value: "5432"
+            - name: DB_POSTGRESDB_DATABASE
+              value: n8n
+            - name: DB_POSTGRESDB_USER
+              value: n8n
+            - name: DB_POSTGRESDB_PASSWORD
+              value: n8npass
+            - name: N8N_BASIC_AUTH_ACTIVE
+              value: "true"
+            - name: N8N_BASIC_AUTH_USER
+              value: n8nadmin
+            - name: N8N_BASIC_AUTH_PASSWORD
+              value: adminpass
+            - name: N8N_HOST
+              value: n8n.kof.home.arpa
+            - name: N8N_PORT
+              value: "5678"
+            - name: WEBHOOK_URL
+              value: http://n8n.kof.home.arpa/
+            - name: GENERIC_TIMEZONE
+              value: Asia/Tokyo
+            - name: N8N_SECURE_COOKIE
+              value: "false"
+            - name: N8N_USER_FOLDER
+              value: "/n8n"
+            - name: N8N_PROXY_HEADERS
+              value: "true"
+            - name: N8N_TRUST_PROXY
+              value: "true"
+          volumeMounts:
+            - name: n8n-data
+              mountPath: /n8n
+      volumes:
+        - name: n8n-data
+          persistentVolumeClaim:
+            claimName: n8n-pvc
+

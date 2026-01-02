@@ -4,9 +4,9 @@ metadata:
   name: n8n-pvc
   namespace: n8n
 spec:
+  storageClassName: csi-rbd-sc
   accessModes:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 2Gi
-  storageClassName: csi-rbd-sc
+      storage: 5Gi
